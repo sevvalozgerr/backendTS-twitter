@@ -23,3 +23,10 @@ export interface LoginParams {
   email: string;
   password: string;
 }
+
+// your other interfaces go here ...
+
+export interface RefreshParams {
+  email: string;
+  refreshToken: string;
+}
