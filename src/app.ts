@@ -4,6 +4,8 @@ dotenv.config();
 import express, { json, urlencoded } from "express";
 import { connectToDatabase } from "./db/connect";
 
+import fileUpload from "express-fileupload";
+
 const app = express();
 
 
@@ -11,7 +13,12 @@ const app = express();
 
 app.use(urlencoded({ extended: true }));
 app.use(json());
-
+app.use(
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: "/tmp/",
+  })
+);
 
 // swagger UI
 import * as swaggerUI from "swagger-ui-express";

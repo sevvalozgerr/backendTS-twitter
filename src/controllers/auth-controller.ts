@@ -67,4 +67,6 @@ export class AuthController extends Controller {
     const user = request.user as AuthenticatedUser;
     return new AuthService().refresh(requestBody, user);
   }
+
+
 }
