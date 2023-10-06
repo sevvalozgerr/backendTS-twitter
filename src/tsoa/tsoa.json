@@ -106,6 +106,128 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"PostType": {
+				"enum": [
+					"post",
+					"repost",
+					"reply"
+				],
+				"type": "string"
+			},
+			"PostModel": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"userId": {
+						"type": "string"
+					},
+					"text": {
+						"type": "string"
+					},
+					"type": {
+						"$ref": "#/components/schemas/PostType"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"attachmentId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"userId",
+					"text",
+					"type",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreatePostParams": {
+				"properties": {
+					"text": {
+						"type": "string"
+					},
+					"type": {
+						"$ref": "#/components/schemas/PostType"
+					},
+					"originalPostId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"text",
+					"type"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ReactionType": {
+				"enum": [
+					"like"
+				],
+				"type": "string"
+			},
+			"ReactionModel": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"userId": {
+						"type": "string"
+					},
+					"postId": {
+						"type": "string"
+					},
+					"type": {
+						"$ref": "#/components/schemas/ReactionType"
+					}
+				},
+				"required": [
+					"id",
+					"userId",
+					"postId",
+					"type"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateReactionParams": {
+				"properties": {
+					"type": {
+						"$ref": "#/components/schemas/ReactionType"
+					}
+				},
+				"required": [
+					"type"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"AttachmentModel": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"mimeType": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"mimeType"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"Profile": {
 				"properties": {
 					"bio": {
@@ -118,6 +240,73 @@
 						"type": "string"
 					}
 				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Post": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"userId": {
+						"type": "string"
+					},
+					"text": {
+						"type": "string"
+					},
+					"type": {
+						"$ref": "#/components/schemas/PostType"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"attachmentId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"userId",
+					"text",
+					"type",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PostsResponse": {
+				"properties": {
+					"remainingCount": {
+						"type": "number",
+						"format": "double"
+					},
+					"remainingPages": {
+						"type": "number",
+						"format": "double"
+					},
+					"count": {
+						"type": "number",
+						"format": "double"
+					},
+					"posts": {
+						"items": {
+							"$ref": "#/components/schemas/Post"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"remainingCount",
+					"remainingPages",
+					"count",
+					"posts"
+				],
 				"type": "object",
 				"additionalProperties": false
 			}
@@ -259,6 +448,255 @@
 						}
 					}
 				}
+			}
+		},
+		"/api/v1/posts": {
+			"post": {
+				"operationId": "createPost",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PostModel"
+								}
+							}
+						}
+					},
+					"201": {
+						"description": ""
+					},
+					"400": {
+						"description": "Original post ID is missing"
+					}
+				},
+				"description": "Creates a new post, allows you to reply to an existing post or simply repost the original post.\r\nFor replies and reposts, the original post ID must be specified.\r\nFor a new post, the original post ID will be ignored.",
+				"tags": [
+					"Posts"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreatePostParams"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/posts/react/{postId}": {
+			"post": {
+				"operationId": "reactToPost",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ReactionModel"
+								}
+							}
+						}
+					},
+					"201": {
+						"description": ""
+					},
+					"404": {
+						"description": "Post not found"
+					}
+				},
+				"description": "Reacts to a post with a reaction specified by the body.",
+				"tags": [
+					"Posts"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "postId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateReactionParams"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "unreactToPost",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ReactionModel"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Reaction not found"
+					}
+				},
+				"description": "Deletes an existing reaction on a post.",
+				"tags": [
+					"Posts"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "postId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/v1/posts/{postId}": {
+			"patch": {
+				"operationId": "attachToPost",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AttachmentModel"
+								}
+							}
+						}
+					},
+					"201": {
+						"description": ""
+					},
+					"404": {
+						"description": "Post not found"
+					},
+					"500": {
+						"description": "Could not attach photo to post"
+					}
+				},
+				"description": "Attaches a photo to a post or a reply. Will throw an error if\r\nthe post is a repost (post.type == post | reply)\r\nCan attach at most once. Once a photo is attached,\r\nit cannot be changed or deleted.",
+				"tags": [
+					"Posts"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "postId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"delete": {
+				"operationId": "deletePost",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PostModel"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Post not found"
+					}
+				},
+				"description": "Deletes a post belonging to the current user.",
+				"tags": [
+					"Posts"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "postId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/v1/posts/attachment/{postId}": {
+			"get": {
+				"operationId": "getPostAttachment",
+				"responses": {
+					"200": {
+						"description": ""
+					},
+					"204": {
+						"description": "No content"
+					},
+					"404": {
+						"description": "Photo not found"
+					}
+				},
+				"description": "Grabs an attachment from a post",
+				"tags": [
+					"Posts"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "postId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
 			}
 		},
 		"/api/v1/profile/info/{userId}": {
@@ -409,6 +847,71 @@
 						"required": true,
 						"schema": {
 							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/v1/query/posts": {
+			"get": {
+				"operationId": "queryPosts",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PostsResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					}
+				},
+				"description": "Retrieves posts with given parameters, with pagination.",
+				"tags": [
+					"Queries"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "userId",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "resultsPerPage",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "page",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "type",
+						"required": false,
+						"schema": {
+							"$ref": "#/components/schemas/PostType"
 						}
 					}
 				]

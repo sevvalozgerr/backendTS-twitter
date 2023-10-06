@@ -28,7 +28,9 @@ export default class AuthService {
       refresh,
     };
   }
-  public async login(params: LoginParams): Promise<UserAndCredentials> {
+  public async login(
+    params: LoginParams
+    ): Promise<UserAndCredentials> {
     const user = await User.findOne({ email: params.email });
     if (!user) {
       throw new UnauthorizedError();

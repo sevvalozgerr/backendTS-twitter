@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
 dotenv.config();
-
 import express, { json, urlencoded } from "express";
 import { connectToDatabase } from "./db/connect";
 
