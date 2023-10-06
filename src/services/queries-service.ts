@@ -1,12 +1,23 @@
+import Reaction from "../db/models/reaction";
 import Post from "../db/models/post";
-import { PostType, Post as TSOAPostModel } from "./models/posts-models";
+import { 
+    PostType, 
+    Post as TSOAPostModel,
+    Reaction as TSOAReactionModel,
+} from "./models/posts-models";
+
 import { 
     PostsResponse, 
     QueryPostsParams,
     GetRepliesParams,
+    GetUserReactionsParams,
+    ReactionsResponse,
+    PostStatsResponse,
 } from "./models/queries-models";
+
 const { max } = Math;
 const { min } = Math;
+
 
 export default class QueriesService {
   public async queryPosts(
@@ -63,6 +74,50 @@ export default class QueriesService {
       count: posts.length,
       posts: posts.map((post) => post.toJSON() as TSOAPostModel),
     };
+  }
+  
+  public async getReactions(
+    params: GetUserReactionsParams,
+    requestUserId: String
+  ): Promise<ReactionsResponse> {
+    const userId = params.userId || requestUserId;
+    const resultsPerPage = min(params.resultsPerPage ?? 10, 100);
+    const page = params.page ?? 0;
+    const skip = resultsPerPage * page;
+
+    const reactions = await Reaction.find({ userId }, null, {
+      skip: skip,
+      limit: resultsPerPage,
+      sort: { createdAt: -1 },
+    });
+
+    const totalReactions = await Reaction.countDocuments({ userId });
+    const remainingCount = max(totalReactions - (page + 1) * resultsPerPage, 0);
+    const remaingPages = Math.ceil(remainingCount / resultsPerPage);
+
+    return {
+      remainingCount: remainingCount,
+      remainingPages: remaingPages,
+      count: reactions.length,
+      reactions: reactions.map(
+        (reaction) => reaction.toJSON() as TSOAReactionModel
+      ),
+    };
+  }
+
+  
+  public async getPostStats(postId: String): Promise<PostStatsResponse> {
+    const reactionCount = await Reaction.countDocuments({ postId });
+    const replyCount = await Post.countDocuments({
+      originalPostId: postId,
+      type: "reply",
+    });
+    const repostCount = await Post.countDocuments({
+      originalPostId: postId,
+      type: "repost",
+    });
+
+    return { reactionCount, replyCount, repostCount };
   }
 }
 

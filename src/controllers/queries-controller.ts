@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   OperationId,
+  Path,
   Query,
   Request,
   Response,
@@ -10,10 +11,10 @@ import {
   Security,
   Tags,
 } from "tsoa";
-
+import { Request as ExpressRequest } from "express";  
 import * as express from "express";
 import AuthenticatedUser from "../middleware/models/authenticated-user";
-import { PostsResponse } from "../services/models/queries-models";
+import { PostsResponse, ReactionsResponse, PostStatsResponse } from "../services/models/queries-models";
 
 import { PostType } from "../services/models/posts-models";
 
@@ -49,4 +50,67 @@ export class QueriesController extends Controller {
       resolvedUserId
     );
   }
+  
+  /**
+   * Retrieves replies to a post with given parameters, with pagination.
+   */
+  @Get("/replies/{postId}")
+  @OperationId("getReplies")
+  @Response(StatusCodes.OK)
+  @Response(StatusCodes.UNAUTHORIZED, "Unauthorized")
+  @Security("jwt")
+  public async getReplies(
+    @Path() postId: string,
+    @Query() resultsPerPage?: number,
+    @Query() page?: number
+  ): Promise<PostsResponse> {
+    return new QueriesService().getReplies({
+      postId,
+      resultsPerPage,
+      page,
+    });
+  }
+
+
+  /**
+   * Retrieves reactions made by a user, with pagination.
+   */
+  @Get("/reactions/{userId}")
+  @OperationId("getReactions")
+  @Response(StatusCodes.OK)
+  @Response(StatusCodes.UNAUTHORIZED, "Unauthorized")
+  @Security("jwt")
+  public async getReactions(
+    @Request() request: ExpressRequest,
+    @Path() userId: string,
+    @Query() resultsPerPage?: number,
+    @Query() page?: number
+  ): Promise<ReactionsResponse> {
+    const user = request.user as AuthenticatedUser;
+    const requestUserId = user.id;
+    return new QueriesService().getReactions(
+      {
+        userId,
+        resultsPerPage,
+        page,
+      },
+      requestUserId
+    );
+  }
+
+  /**
+   * Retrieves stats for a post: number of reactions, replies and reposts.
+   */
+  @Get("/stats/{postId}")
+  @OperationId("getPostStats")
+  @Response(StatusCodes.OK)
+  @Response(StatusCodes.UNAUTHORIZED, "Unauthorized")
+  @Security("jwt")
+  public async getPostStats(
+    @Path() postId: string
+  ): Promise<PostStatsResponse> {
+    return new QueriesService().getPostStats(postId);
+  }
+
+
 }
